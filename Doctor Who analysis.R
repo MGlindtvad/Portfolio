@@ -20,7 +20,7 @@ str(imdb_details, give.att = FALSE)
 
 
 #left join dwguide with allepisodes
-dw_episode <- dwguide %>% select(!(cast:summary)) %>%
+dw_episode <- dwguide %>% select(!(crew:summary)) %>%
   left_join(allepisodes, by = "title", suffix = c(".guide",".episode"))%>% 
   arrange(episodenbr)
 
@@ -34,19 +34,57 @@ dw_episode %>% group_by(doctorid) %>%
 dwguide$cast
 
 #The way to find the Doctors are in the variable cast and that variable is a long string containing 
-Doctor <- data.frame(episodenbr = 1:nrow(dw_episode),DoctorText = rep("No Doctor", nrow(dw_episode)))
+Doctor <- data.frame(episodenbr = 1:nrow(dw_episode),DoctorActor = rep("No Doctor", nrow(dw_episode)))
 
-for(i in dw_episode$episodenbr){Doctor$DoctorText[i] <- unlist(strsplit(dwguide$cast[i], split = ","))[2]}
+#Arranging dwguide, so we can use episodenbr in a for loop and letter join 
+#together with the new Doctor table 
+dwguide <- dwguide %>% 
+  arrange(episodenbr)
 
-Doctor$DoctorText <- str_replace_all(str_replace_all(Doctor$DoctorText, "[^[:alnum:]]", ""), "name","")
+#Staring with splitting the cast string by at "," and only keeping the 2 output 
+#that contains the name of the actor who plays the doctor
+for(i in dw_episode$episodenbr){Doctor$DoctorActor[i] <- unlist(strsplit(dwguide$cast[i], split = ","))[2]}
 
-##Checking to see that only the Doctors was 
-unique(Doctor$DoctorText)
+#Removing the part op the string that says "name" and all the unwanted characters 
+Doctor$DoctorActor <- str_replace_all(str_replace_all(Doctor$DoctorActor, "[^[:alnum:]]", ""), "name","")
 
-##One is just call Dr. Who and we want to know how many episodes has this as a cast
-Doctor %>% filter(DoctorText == "DrWho") 
+#Checking to see that only the Doctors was 
+unique(Doctor$DoctorActor)
+
+Doctor$DoctorActor <- str_replace_all(Doctor$DoctorActor, "creditonly", "")
+
+#Adding space between first and last name of the actors
+Doctor$DoctorActor <- gsub("([a-z])([A-Z])", "\\1 \\2", Doctor$DoctorActor)
+
+#Saving the unique Actors name in DoctorActors_unique 
+DoctorActors_unique <- unique(Doctor$DoctorActor)
+DoctorActors_unique
+
+#One is just call Dr. Who and we want to know how many episodes has this as a cast
+outlier <- Doctor %>% filter(DoctorActor == "Dr Who")  
+
+#Checking the title and the cast to see if the text was divide correct for the outlier
+dwguide %>% filter(episodenbr == outlier$episodenbr)%>%
+  select(title,cast) 
+
+#Numbering the doctors by using the rownumber and giving the outlier the number 0
+#We can use this method because of the arrange we did earlier that ordered the episodes 
+Outlier_row <- which(DoctorActors_unique == "Dr Who")
+
+DoctorActors_unique <- data.frame(Actor = DoctorActors_unique) %>% 
+  mutate(nr = which(DoctorActors_unique == DoctorActors_unique))%>%  
+  mutate(doctorNr = ifelse(nr == Outlier_row , 0,
+                           ifelse(nr > Outlier_row ,nr-1,nr)))
+
+#Join dw_episode with Doctor by episodenbr to acess the names of the doctor
+doctor_episode <- dw_episode %>% left_join(Doctor, by = c("episodenbr" = "episodenbr")) %>%
+  left_join(DoctorActors_unique, by = c("DoctorActor"="Actor"))
+
+#checking the join
+doctor_episode %>% select(doctorNr, DoctorActor, cast)
 
 ##Which doctor has the maximum, minimum and mean of episodes
+
 ##To be continued
   
   
