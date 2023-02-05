@@ -83,6 +83,27 @@ doctor_episode <- dw_episode %>% left_join(Doctor, by = c("episodenbr" = "episod
 #checking the join
 doctor_episode %>% select(doctorNr, DoctorActor, cast)
 
+#Removing space from McGann and McCoy
+doctor_episode <- doctor_episode %>%
+  mutate(DoctorActor = ifelse(DoctorActor == "Paul Mc Gann", "Paul McGann", 
+                              ifelse(DoctorActor == "Sylvester Mc Coy","Sylvester McCoy",DoctorActor)))
+
+#Plotting number of episodes each actor has headline in (Only one doctor pr episode)
+EpisodePlot <- doctor_episode %>%
+  mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
+  filter(nr != Outlier_row) %>%
+  group_by(Doctor_x) %>% 
+  summarize(n = n()) %>%
+  arrange(as.numeric(str_sub(Doctor_x,1,2))) %>%
+  ggplot(aes(Doctor_x,n))+
+  geom_col(fill = "blue2", color = "black")+
+  ggtitle("Number of episode for each doctor")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  ylab("Number of episodes")+
+  xlab("Actor")
+
+EpisodePlot
+
 ##Which doctor has the maximum, minimum and mean of episodes
 
 ##To be continued
