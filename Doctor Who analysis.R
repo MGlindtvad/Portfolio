@@ -89,23 +89,53 @@ doctor_episode <- doctor_episode %>%
                               ifelse(DoctorActor == "Sylvester Mc Coy","Sylvester McCoy",DoctorActor)))
 
 #Plotting number of episodes each actor has headline in (Only one doctor pr episode)
-EpisodePlot <- doctor_episode %>%
-  mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
-  filter(nr != Outlier_row) %>%
-  group_by(Doctor_x) %>% 
-  summarize(n = n()) %>%
-  arrange(as.numeric(str_sub(Doctor_x,1,2))) %>%
-  ggplot(aes(Doctor_x,n))+
-  geom_col(fill = "blue2", color = "black")+
-  ggtitle("Number of episode for each doctor")+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-  ylab("Number of episodes")+
-  xlab("Actor")
+Number_of_episode <- doctor_episode %>%
+                    mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
+                    filter(nr != Outlier_row) %>%
+                    group_by(Doctor_x) %>% 
+                    summarize(numberOfEpisodes = n()) %>%
+
+  Number_of_episode$Doctor_x <- factor(Number_of_episode$Doctor_x, 
+                               levels =Number_of_episode$Doctor_x)
+
+
+EpisodePlot <- Number_of_episode%>%
+                ggplot(aes(Doctor_x,numberOfEpisodes))+
+                geom_col(fill = "blue2", color = "black")+
+                ggtitle("Number of episode for each doctor")+
+                theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+                ylab("Number of episodes")+
+                xlab("Actor")
 
 EpisodePlot
 
-##Which doctor has the maximum, minimum and mean of episodes
+##Which doctor has the maximum, minimum and mean of episodes?
 
+
+maximum <- Number_of_episode %>% filter(numberOfEpisodes == max(numberOfEpisodes))
+minimum <- Number_of_episode %>% filter(numberOfEpisodes == min(numberOfEpisodes))
+mean_sd <- Number_of_episode %>% summarize(mean = mean(numberOfEpisodes), 
+                                sd = sd(numberOfEpisodes))
+
+c(maximum, minimum, mean_sd)
+
+x_test <- Number_of_episode %>% 
+  filter(NumberDoctor == maximum$NumberDoctor+2) %>%
+  select(Doctor_x)
+
+class(maximum$numberOfEpisodes)
+EpisodePlot + annotate(geom = "curve",
+                       x= as.character(x_test), 
+                       y = 150.0 ,
+                       xend = as.character(maximum$Doctor_x), 
+                       yend = maximum$numberOfEpisodes,
+                       curvature = .3,
+                       arrow = arrow(length = unit(2, "mm"))) 
+##https://ggplot2-book.org/annotations.html
+
+
+##Longest time on screen?
+##Best reviews?
 ##To be continued
   
   
