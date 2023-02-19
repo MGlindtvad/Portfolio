@@ -88,17 +88,19 @@ doctor_episode <- doctor_episode %>%
   mutate(DoctorActor = ifelse(DoctorActor == "Paul Mc Gann", "Paul McGann", 
                               ifelse(DoctorActor == "Sylvester Mc Coy","Sylvester McCoy",DoctorActor)))
 
-#Plotting number of episodes each actor has headline in (Only one doctor pr episode)
+#Plotting number of episodes each actor has be the main doctor in(Only one doctor pr episode)
 Number_of_episode <- doctor_episode %>%
                     mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
                     filter(nr != Outlier_row) %>%
                     group_by(Doctor_x) %>% 
-                    summarize(numberOfEpisodes = n()) %>%
+                    summarize(numberOfEpisodes = n())
 
-  Number_of_episode$Doctor_x <- factor(Number_of_episode$Doctor_x, 
+#Changing the factor levels so as to order the x-axis 
+#according to the order of the doctors
+Number_of_episode$Doctor_x <- factor(Number_of_episode$Doctor_x, 
                                levels =Number_of_episode$Doctor_x)
 
-
+#Plotting
 EpisodePlot <- Number_of_episode%>%
                 ggplot(aes(Doctor_x,numberOfEpisodes))+
                 geom_col(fill = "blue2", color = "black")+
@@ -108,8 +110,6 @@ EpisodePlot <- Number_of_episode%>%
                 xlab("Actor")
 
 EpisodePlot
-
-
 
 
 ##Longest time on screen?
