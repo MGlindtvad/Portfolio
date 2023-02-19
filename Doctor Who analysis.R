@@ -109,29 +109,7 @@ EpisodePlot <- Number_of_episode%>%
 
 EpisodePlot
 
-##Which doctor has the maximum, minimum and mean of episodes?
 
-
-maximum <- Number_of_episode %>% filter(numberOfEpisodes == max(numberOfEpisodes))
-minimum <- Number_of_episode %>% filter(numberOfEpisodes == min(numberOfEpisodes))
-mean_sd <- Number_of_episode %>% summarize(mean = mean(numberOfEpisodes), 
-                                sd = sd(numberOfEpisodes))
-
-c(maximum, minimum, mean_sd)
-
-x_test <- Number_of_episode %>% 
-  filter(NumberDoctor == maximum$NumberDoctor+2) %>%
-  select(Doctor_x)
-
-class(maximum$numberOfEpisodes)
-EpisodePlot + annotate(geom = "curve",
-                       x= as.character(x_test), 
-                       y = 150.0 ,
-                       xend = as.character(maximum$Doctor_x), 
-                       yend = maximum$numberOfEpisodes,
-                       curvature = .3,
-                       arrow = arrow(length = unit(2, "mm"))) 
-##https://ggplot2-book.org/annotations.html
 
 
 ##Longest time on screen?
