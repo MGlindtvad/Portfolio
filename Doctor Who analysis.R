@@ -90,27 +90,77 @@ doctor_episode <- doctor_episode %>%
 
 #Plotting number of episodes each actor has be the main doctor in(Only one doctor pr episode)
 Number_of_episode <- doctor_episode %>%
-                    mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
-                    filter(nr != Outlier_row) %>%
-                    group_by(Doctor_x) %>% 
-                    summarize(numberOfEpisodes = n())
+  mutate(Doctor_x = paste(doctorNr,". ", DoctorActor)) %>%
+  filter(nr != Outlier_row) %>%
+  group_by(Doctor_x) %>% 
+  summarize(numberOfEpisodes = n()) %>%
+  mutate(NumberDoctor = as.numeric(str_sub(Doctor_x,1,2))) %>%
+  arrange(NumberDoctor)
+
 
 #Changing the factor levels so as to order the x-axis 
 #according to the order of the doctors
 Number_of_episode$Doctor_x <- factor(Number_of_episode$Doctor_x, 
-                               levels =Number_of_episode$Doctor_x)
+                                     levels = Number_of_episode$Doctor_x, 
+                                     ordered =  TRUE)
 
 #Plotting
 EpisodePlot <- Number_of_episode%>%
-                ggplot(aes(Doctor_x,numberOfEpisodes))+
-                geom_col(fill = "blue2", color = "black")+
-                ggtitle("Number of episode for each doctor")+
-                theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
-                ylab("Number of episodes")+
-                xlab("Actor")
+  ggplot(aes(Doctor_x,numberOfEpisodes, group = 1))+
+  geom_col(fill = "blue2", color = "black")+
+  ggtitle("Number of episode for each doctor")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  ylab("Number of episodes")+
+  xlab("Actor")
 
 EpisodePlot
 
+##Which doctor has the maximum, minimum and mean of episodes?
+maximum <- Number_of_episode %>% filter(numberOfEpisodes == max(numberOfEpisodes))
+minimum <- Number_of_episode %>% filter(numberOfEpisodes == min(numberOfEpisodes))
+mean_sd <- Number_of_episode %>% summarize(mean = mean(numberOfEpisodes), 
+                                           sd = sd(numberOfEpisodes))
+
+unlist(maximum)
+unlist(minimum)
+unlist(mean_sd)
+
+x_input_max <- Number_of_episode %>% 
+  filter(NumberDoctor == maximum$NumberDoctor+2) %>%
+  select(Doctor_x)
+
+y_input_max <- maximum$numberOfEpisodes-15
+
+x_input_min <- Number_of_episode %>% 
+  filter(NumberDoctor == minimum$NumberDoctor) %>%
+  select(Doctor_x)
+
+y_input_min <- minimum$numberOfEpisodes+100
+
+class(maximum$numberOfEpisodes)
+EpisodePlot + annotate(geom = "curve",
+                       x= as.numeric(x_input_max), 
+                       y = y_input_max,
+                       xend = as.character(maximum$Doctor_x), 
+                       yend = (maximum$numberOfEpisodes+1),
+                       curvature = .7,
+                       arrow = arrow(length = unit(2, "mm"))) +
+  annotate("text", x= as.numeric(x_input_max), 
+           y = y_input_max-2,
+           label = "doctor with most episodes",
+           hjust = "left")+
+  
+  annotate(geom = "curve",
+           x= as.numeric(x_input_min), 
+           y = y_input_min,
+           xend = as.character(minimum$Doctor_x), 
+           yend = (minimum$numberOfEpisodes+1),
+           curvature = .1,
+           arrow = arrow(length = unit(2, "mm"))) +
+  annotate("text", x= as.numeric(x_input_min), 
+           y = y_input_min+3,
+           label = "doctor with least episodes",
+           hjust = "left")
 
 ##Longest time on screen?
 ##Best reviews?
